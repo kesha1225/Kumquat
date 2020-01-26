@@ -1,4 +1,6 @@
-import typing
+"""
+request schema
+"""
 from collections import namedtuple
 from kumquat.types import Scope
 
@@ -7,6 +9,10 @@ _client = namedtuple("client", ["host", "port"])
 
 
 class Request:
+    """
+    request data class
+    """
+
     charset = "utf-8"
 
     def __init__(self, scope: Scope):
