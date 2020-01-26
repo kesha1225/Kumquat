@@ -1,31 +1,30 @@
 # kumquat
 
-simple asynchronous web framework, based on uvicorn
+Fast asynchronous web framework, based on uvicorn.
   
-<img src="https://i.imgur.com/8iU3Ex6l.jpg" title="source: imgur.com" />
-
+<img src="https://i.imgur.com/goXLUNU.png" title="source: imgur.com" />
 
 
 ### Installation
 
-unstable:
-```
-pip install https://github.com/kesha1225/Kumquat/archive/master.zip --upgrade
-```
-
-stable:
+Stable:
 ```
 pip install kumquat
 ```
 
+Unstable:
+```
+pip install https://github.com/kesha1225/Kumquat/archive/master.zip --upgrade
+```
+
 ### Documention
 
-wip...
+Work in progress...
 
 
 ### Usage
 
-you can see more examples [here](https://github.com/kesha1225/Kumquat/examples)
+You can see more examples [here](https://github.com/kesha1225/Kumquat/examples).
 
 ```python3
 from kumquat.application import Kumquat
@@ -37,7 +36,7 @@ import logging
 logging.basicConfig(level="INFO")
 
 app = Kumquat()
-app.app_name = "SUPER_APP_3000_MEGA_COOL"
+app.app_name = "MyNewApp"
 
 
 @app.index()
