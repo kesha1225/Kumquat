@@ -1,9 +1,23 @@
-from kumquat.types import Scope, Receive, Send
+"""
+response schema
+"""
 import json
 import typing
+from kumquat.types import Scope, Receive, Send
+
+try:
+    import ujson
+except ImportError:
+    ujson = None
+
+json_library = json if ujson is None else ujson
 
 
 class SimpleResponse:
+    """
+    response data class
+    """
+
     charset = "utf-8"
     content_type = "text/plain"
 
@@ -15,21 +29,45 @@ class SimpleResponse:
     ):
         self.data = body
         self.body = self.parse_data()
-        self.status_code = status_code
-        self.raw_headers = headers
-        self.headers = self.create_headers()
+        self._status_code = status_code
+        self._custom_headers = headers
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         await send(
             {
                 "type": "http.response.start",
                 "status": self.status_code,
-                "headers": self.headers,
+                "headers": self._create_headers(),
             }
         )
         await send({"type": "http.response.body", "body": self.body})
 
-    def create_headers(self) -> typing.List[typing.List[bytes]]:
+    @property
+    def custom_headers(self):
+        """
+        headers property for response
+
+        :return:
+        """
+        return self._custom_headers
+
+    @custom_headers.setter
+    def custom_headers(self, value):
+        self._custom_headers = value
+
+    @property
+    def status_code(self):
+        """
+        status code property for response
+        :return:
+        """
+        return self._status_code
+
+    @status_code.setter
+    def status_code(self, value):
+        self._status_code = value
+
+    def _create_headers(self) -> typing.List[typing.List[bytes]]:
         _headers = [
             [b"content-length", str(len(self.body)).encode(self.charset)],
             [
@@ -38,16 +76,29 @@ class SimpleResponse:
             ],
         ]
 
-        if self.raw_headers is not None:
+        if self.custom_headers is not None:
             _header = []
-            for header in self.raw_headers:
+            for header in self.custom_headers:
                 for k, v in header.items():
                     _header.extend([k.encode(self.charset), v.encode(self.charset)])
                 _headers.append(_header)
-
         return _headers
 
+    def set_headers(self, headers: typing.Dict[str, str]):
+        """
+        set headers for response
+        :param headers:
+        :return:
+        """
+        if self.custom_headers is None:
+            self.custom_headers = []
+        self.custom_headers.append(headers)
+
     def parse_data(self) -> bytes:
+        """
+        encode response body to bytes
+        :return:
+        """
         if isinstance(self.data, bytes):
             return self.data
         return self.data.encode(self.charset)
@@ -61,8 +112,8 @@ class HTMLResponse(SimpleResponse):
     content_type = "text/html"
 
 
-class JSONResponse(SimpleResponse):
+class JsonResponse(SimpleResponse):
     content_type = "application/json"
 
     def parse_data(self):
-        return json.dumps(self.data).encode(self.charset)
+        return json_library.dumps(self.data).encode(self.charset)
