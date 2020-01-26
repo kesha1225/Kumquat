@@ -24,7 +24,6 @@ class Kumquat:
 
     async def __call__(self, scope, receive, send) -> None:
         request = Request(scope)
-        # TODO: методы
         path_dict, current_route = self.router.get_route(request.path)
         request.path_dict = path_dict
 
