@@ -45,7 +45,7 @@ class Router:
         """
         self.routes[self.pattern(route.path)] = route
 
-    def _get_route(
+    def get_route(
         self, path
     ) -> typing.Tuple[typing.Dict[str, str], typing.Optional[Route]]:
         # FIXME: simplification for getting index page route

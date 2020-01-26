@@ -35,7 +35,7 @@ class Kumquat:
     async def __call__(self, scope, receive, send) -> None:
         request = Request(scope)
         response = SimpleResponse(b"")
-        path_dict, current_route = self.router._get_route(request.path)
+        path_dict, current_route = self.router.get_route(request.path)
         request.path_dict = path_dict
 
         response: SimpleResponse = await self._prepare_response(
@@ -54,7 +54,9 @@ class Kumquat:
         route_result = await current_route.func(request, response)
 
         if isinstance(route_result, SimpleResponse):
+            # if route func return TextResponse("") or smth like that
             route_result.custom_headers = response.custom_headers
+            route_result.status_code = response.status_code
             return route_result
 
         if isinstance(route_result, str):
