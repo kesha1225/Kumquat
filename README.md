@@ -7,12 +7,12 @@ Fast asynchronous web framework, based on uvicorn.
 
 ### Installation
 
-stable:
+Stable:
 ```
 pip install kumquat
 ```
 
-unstable:
+Unstable:
 ```
 pip install https://github.com/kesha1225/Kumquat/archive/master.zip --upgrade
 ```
