@@ -2,8 +2,7 @@
 
 Fast asynchronous web framework, based on uvicorn.
   
-<img src="https://i.imgur.com/goXLUNU.png" title="source: imgur.com" />
-
+<img src="https://i.imgur.com/8iU3Ex6l.jpg" title="source: imgur.com" />
 
 ### Installation
 
