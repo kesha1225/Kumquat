@@ -5,6 +5,7 @@ from vbml import Pattern
 
 class Route:
     def __init__(self, path: str, func: typing.Callable, methods: typing.List[str]):
+        assert path.startswith("/"), "Path must startswith from '/'"
         self.methods = methods
         self.path = path
         self.func = func

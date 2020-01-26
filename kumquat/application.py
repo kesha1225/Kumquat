@@ -61,7 +61,6 @@ class Kumquat:
 
     def get(self, path: str):
         def decorator(func: typing.Callable) -> typing.Callable:
-            assert path.startswith("/")
             route = Route(path, func, methods=["GET"])
             self.router.add_route(route)
             return func
@@ -70,7 +69,6 @@ class Kumquat:
 
     def post(self, path: str):
         def decorator(func: typing.Callable) -> typing.Callable:
-            assert path.startswith("/")
             route = Route(path, func, methods=["POST"])
             self.router.add_route(route)
             return func
@@ -79,7 +77,6 @@ class Kumquat:
 
     def route(self, path: str, methods: typing.List[str]):
         def decorator(func: typing.Callable) -> typing.Callable:
-            assert path.startswith("/")
             route = Route(path, func, methods=methods)
             self.router.add_route(route)
             return func
