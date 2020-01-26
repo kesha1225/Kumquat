@@ -1,5 +1,5 @@
 from kumquat.application import Kumquat
-from kumquat.response import TextResponse, JSONResponse, HTMLResponse
+from kumquat.response import TextResponse, JsonResponse, HTMLResponse
 from kumquat.request import Request
 from kumquat.response import SimpleResponse
 import logging

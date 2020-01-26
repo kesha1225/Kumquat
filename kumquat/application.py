@@ -5,7 +5,7 @@ import typing
 import logging
 
 import uvicorn
-from kumquat.response import TextResponse, JSONResponse, SimpleResponse
+from kumquat.response import TextResponse, JsonResponse, SimpleResponse
 from kumquat.route import Route, Router
 from kumquat.request import Request
 
@@ -67,7 +67,7 @@ class Kumquat:
             )
 
         if isinstance(route_result, dict):
-            return JSONResponse(
+            return JsonResponse(
                 route_result,
                 headers=response.custom_headers,
                 status_code=response.status_code,
@@ -81,7 +81,7 @@ class Kumquat:
                 )
 
             if isinstance(data, dict):
-                return JSONResponse(
+                return JsonResponse(
                     data, status_code=status_code, headers=response.custom_headers
                 )
 

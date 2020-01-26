@@ -112,7 +112,7 @@ class HTMLResponse(SimpleResponse):
     content_type = "text/html"
 
 
-class JSONResponse(SimpleResponse):
+class JsonResponse(SimpleResponse):
     content_type = "application/json"
 
     def parse_data(self):
