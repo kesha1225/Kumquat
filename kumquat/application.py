@@ -5,12 +5,10 @@ from kumquat.route import Route, Router
 from kumquat.request import Request
 import logging
 
-logging.basicConfig(format="%(levelname)s:     %(message)s", level="DEBUG")
-
+logger = logging.getLogger(__name__)
 
 class Kumquat:
     def __init__(self):
-        self.logger = logging.getLogger(__package__)
         self.router = Router()
         self._app_name = "KumquatApp"
 
@@ -92,5 +90,5 @@ class Kumquat:
         return decorator
 
     def run(self):
-        self.logger.info(f"Starting {self.app_name} app...")
+        logger.info(f"Starting {self.app_name} app...")
         uvicorn.run(self)
