@@ -9,8 +9,7 @@ from kumquat.response import TextResponse, JsonResponse, SimpleResponse
 from kumquat.route import Route, Router
 from kumquat.request import Request
 
-logging.basicConfig(format="%(levelname)s:     %(message)s", level="DEBUG")
-
+logger = logging.getLogger(__name__)
 
 class Kumquat:
     """
@@ -18,7 +17,6 @@ class Kumquat:
     """
 
     def __init__(self):
-        self.logger = logging.getLogger(__package__)
         self.router = Router()
         self._app_name = "KumquatApp"
 
@@ -161,6 +159,7 @@ class Kumquat:
 
         return decorator
 
+
     def run(self, host: str = "127.0.0.1", port: int = 5000, log_level: str = "info"):
         """
         start application with uvicorn
@@ -169,5 +168,5 @@ class Kumquat:
         :param log_level:
         :return:
         """
-        self.logger.info(f"Starting {self.app_name} app...")
+        logger.info(f"Starting {self.app_name} app...")
         uvicorn.run(self, host=host, port=port, log_level=log_level)
