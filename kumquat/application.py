@@ -36,9 +36,14 @@ def _process_route_result(route_result: typing.Union[typing.Tuple, typing.Any], 
     else:
         data = route_result
 
-    response = _DISPATCH_TYPES.get(data)
-    if response:
-        return response(data, status_code, response)
+    if isinstance(data, SimpleResponse):
+        key = SimpleResponse
+    else:
+        key = data
+
+    result = _DISPATCH_TYPES.get(key)
+    if result:
+        return result(data, status_code, response)
     else:
         return TextResponse(
             str(data),
@@ -90,7 +95,7 @@ class Kumquat:
         route_result = await current_route.func(request, response)
         return _process_route_result(route_result, response)
 
-           def create_route(self, path: str, func: typing.Callable, methods: typing.List[str]):
+    def create_route(self, path: str, func: typing.Callable, methods: typing.List[str]):
         """
         create any method route for app
         :param path:
