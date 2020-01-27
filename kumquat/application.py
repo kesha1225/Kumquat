@@ -11,6 +11,47 @@ from kumquat.request import Request
 
 logger = logging.getLogger(__name__)
 
+def _dispatch_simple_response(data: SimpleResponse, status_code: int, response, response_class = None):
+    data.custom_headers = response.custom_headers
+    data.status_code = status_code
+    return data
+
+def _dispatch_factory(data: typing.Any, status_code: int, response, response_class):
+    return response_class(data, headers=response.custom_headers, status_code=status_code)
+    
+def _dispatch_lambda_factory(response_class):
+    return lambda *args: _dispatch_factory(*args, response_class=response_class)
+
+_DISPATCH_TYPES = {SimpleResponse: _dispatch_simple_response, 
+                   str: _dispatch_lambda_factory(TextResponse), dict: _dispatch_lambda_factory(JsonResponse)}
+
+def _process_route_result(route_result: typing.Union[typing.Tuple, typing.Any], response):
+    
+    data = None
+    status_code = response.status_code
+    
+    if isinstance(route_result, tuple):
+        data = route_result[0]
+        status_code = route_result[1]
+    else:
+        data = route_result
+
+    if isinstance(data, SimpleResponse):
+        key = SimpleResponse
+    else:
+        key = data
+
+    result = _DISPATCH_TYPES.get(key)
+    if result:
+        return result(data, status_code, response)
+    else:
+        return TextResponse(
+            str(data),
+            status_code=status_code,
+            headers=response.custom_headers,
+        )
+
+
 class Kumquat:
     """
     kumquat web application
@@ -52,45 +93,7 @@ class Kumquat:
             return TextResponse("Method Not Allowed", status_code=405)
 
         route_result = await current_route.func(request, response)
-
-        if isinstance(route_result, SimpleResponse):
-            # if route func return TextResponse("") or smth like that
-            route_result.custom_headers = response.custom_headers
-            route_result.status_code = response.status_code
-            return route_result
-
-        if isinstance(route_result, str):
-            return TextResponse(
-                route_result,
-                headers=response.custom_headers,
-                status_code=response.status_code,
-            )
-
-        if isinstance(route_result, dict):
-            return JsonResponse(
-                route_result,
-                headers=response.custom_headers,
-                status_code=response.status_code,
-            )
-
-        if isinstance(route_result, tuple):
-            data, status_code = route_result
-            if isinstance(data, str):
-                return TextResponse(
-                    data, status_code=status_code, headers=response.custom_headers
-                )
-
-            if isinstance(data, dict):
-                return JsonResponse(
-                    data, status_code=status_code, headers=response.custom_headers
-                )
-
-        # other body types
-        return TextResponse(
-            str(route_result),
-            status_code=response.status_code,
-            headers=response.custom_headers,
-        )
+        return _process_route_result(route_result, response)
 
     def create_route(self, path: str, func: typing.Callable, methods: typing.List[str]):
         """
