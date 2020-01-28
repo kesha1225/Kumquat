@@ -8,6 +8,6 @@ setup(
     author="kesha1225",
     packages=find_packages(),
     description="simple wev framework with features",
-    install_requires=["uvicorn", "vbml"],
+    install_requires=["uvicorn", "vbml", "jinja2", "aiofile"],
     long_description="Docs: https://kesha1225.github.io/kumquat"
 )

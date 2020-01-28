@@ -10,6 +10,7 @@ class Route:
     """
     app route with path and func
     """
+
     def __init__(self, path: str, func: typing.Callable, methods: typing.List[str]):
         assert path.startswith("/"), "Path must startswith from '/'"
         self.methods = methods
@@ -21,6 +22,7 @@ class Validators(PatchedValidators):
     """
     validator for routes paths
     """
+
     def route(self, value):
         if "/" not in value:
             return value
@@ -48,6 +50,11 @@ class Router:
     def get_route(
         self, path
     ) -> typing.Tuple[typing.Dict[str, str], typing.Optional[Route]]:
+        """
+        get route object from string path
+        :param path:
+        :return:
+        """
         # FIXME: simplification for getting index page route
         if path == "/":
             for route_pattern in self.routes:

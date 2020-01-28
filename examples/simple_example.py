@@ -1,12 +1,13 @@
-from kumquat.application import Kumquat
-from kumquat.response import TextResponse, JsonResponse, HTMLResponse
-from kumquat.request import Request
-from kumquat.response import SimpleResponse
 import logging
+
+from kumquat.application import Kumquat
+from kumquat.response import HTMLResponse
+from kumquat.request import Request
+from kumquat.response import SimpleResponse, TemplateResponse
 
 logging.basicConfig(level="INFO")
 
-app = Kumquat()
+app = Kumquat(templates_path="custom_templates/")
 app.app_name = "KumquatApp"
 
 
@@ -17,10 +18,9 @@ async def index(request: Request, response: SimpleResponse):
     return HTMLResponse("<h1>hello</h1>")
 
 
-@app.get("/<param>")
-async def some_param_route(request: Request, response: SimpleResponse):
-    param = request.path_dict["param"]
-    return f"your path now - /{param}", 200
+@app.get("/render")
+async def some_render_route(request: Request, response: SimpleResponse):
+    return TemplateResponse("template_example.html", param="hello world")
 
 
 @app.get("/<name>/<age>")

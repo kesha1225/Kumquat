@@ -5,16 +5,22 @@ import typing
 import logging
 
 import uvicorn
-from kumquat.response import TextResponse, JsonResponse, SimpleResponse
+
+from kumquat.context import env_var
+from kumquat.response import (
+    TextResponse,
+    JsonResponse,
+    SimpleResponse,
+    TemplateResponse,
+    HTMLResponse,
+)
 from kumquat.route import Route, Router
 from kumquat.request import Request
 
 logger = logging.getLogger(__name__)
 
 
-def _dispatch_simple_response(
-    data: SimpleResponse, status_code: int, response, response_class=None
-):
+def _dispatch_simple_response(data: SimpleResponse, status_code: int, response):
     data.custom_headers = response.custom_headers
     data.status_code = status_code
     return data
@@ -32,6 +38,8 @@ def _dispatch_lambda_factory(response_class):
 
 _DISPATCH_TYPES = {
     SimpleResponse: _dispatch_simple_response,
+    HTMLResponse: _dispatch_simple_response,
+    TemplateResponse: _dispatch_simple_response,
     str: _dispatch_lambda_factory(TextResponse),
     dict: _dispatch_lambda_factory(JsonResponse),
 }
@@ -48,18 +56,13 @@ def _process_route_result(
     else:
         data = route_result
 
-    if isinstance(data, SimpleResponse):
-        key = SimpleResponse
-    else:
-        key = data
-
-    result = _DISPATCH_TYPES.get(type(key))
+    result = _DISPATCH_TYPES.get(type(data))
     if result:
         return result(data, status_code, response)
-    else:
-        return TextResponse(
-            str(data), status_code=status_code, headers=response.custom_headers,
-        )
+
+    return TextResponse(
+        str(data), status_code=status_code, headers=response.custom_headers,
+    )
 
 
 class Kumquat:
@@ -67,9 +70,10 @@ class Kumquat:
     kumquat web application
     """
 
-    def __init__(self):
+    def __init__(self, templates_path: str = "templates/"):
         self.router = Router()
         self._app_name = "KumquatApp"
+        env_var.set(templates_path)
 
     @property
     def app_name(self):
@@ -113,7 +117,6 @@ class Kumquat:
         :param methods:
         :return:
         """
-        print(path)
         route = Route(path, func, methods=methods)
 
         route_func_arg_count = route.func.__code__.co_argcount
