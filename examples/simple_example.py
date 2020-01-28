@@ -7,7 +7,7 @@ import logging
 logging.basicConfig(level="INFO")
 
 app = Kumquat()
-app.app_name = "SUPER_APP_3000_MEGA_COOL"
+app.app_name = "KumquatApp"
 
 
 @app.index()

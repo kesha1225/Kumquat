@@ -23,7 +23,7 @@ class Request:
         self.scheme = scope.get("scheme")
         self.method = scope.get("method")
         self.root_path = scope.get("root_path")
-        self.path = scope.get("path")
+        self.path = scope.get("path").rstrip("/")
         self._path_dict = None
         self.raw_path = scope.get("raw_path")
         self.query_string = scope.get("query_string")

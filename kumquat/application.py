@@ -11,25 +11,37 @@ from kumquat.request import Request
 
 logger = logging.getLogger(__name__)
 
-def _dispatch_simple_response(data: SimpleResponse, status_code: int, response, response_class = None):
+
+def _dispatch_simple_response(
+    data: SimpleResponse, status_code: int, response, response_class=None
+):
     data.custom_headers = response.custom_headers
     data.status_code = status_code
     return data
 
+
 def _dispatch_factory(data: typing.Any, status_code: int, response, response_class):
-    return response_class(data, headers=response.custom_headers, status_code=status_code)
-    
+    return response_class(
+        data, headers=response.custom_headers, status_code=status_code
+    )
+
+
 def _dispatch_lambda_factory(response_class):
     return lambda *args: _dispatch_factory(*args, response_class=response_class)
 
-_DISPATCH_TYPES = {SimpleResponse: _dispatch_simple_response, 
-                   str: _dispatch_lambda_factory(TextResponse), dict: _dispatch_lambda_factory(JsonResponse)}
 
-def _process_route_result(route_result: typing.Union[typing.Tuple, typing.Any], response):
-    
-    data = None
+_DISPATCH_TYPES = {
+    SimpleResponse: _dispatch_simple_response,
+    str: _dispatch_lambda_factory(TextResponse),
+    dict: _dispatch_lambda_factory(JsonResponse),
+}
+
+
+def _process_route_result(
+    route_result: typing.Union[typing.Tuple, typing.Any], response
+):
     status_code = response.status_code
-    
+
     if isinstance(route_result, tuple):
         data = route_result[0]
         status_code = route_result[1]
@@ -41,14 +53,12 @@ def _process_route_result(route_result: typing.Union[typing.Tuple, typing.Any], 
     else:
         key = data
 
-    result = _DISPATCH_TYPES.get(key)
+    result = _DISPATCH_TYPES.get(type(key))
     if result:
         return result(data, status_code, response)
     else:
         return TextResponse(
-            str(data),
-            status_code=status_code,
-            headers=response.custom_headers,
+            str(data), status_code=status_code, headers=response.custom_headers,
         )
 
 
@@ -103,6 +113,7 @@ class Kumquat:
         :param methods:
         :return:
         """
+        print(path)
         route = Route(path, func, methods=methods)
 
         route_func_arg_count = route.func.__code__.co_argcount
@@ -163,7 +174,6 @@ class Kumquat:
             return func
 
         return decorator
-
 
     def run(self, host: str = "127.0.0.1", port: int = 5000, log_level: str = "info"):
         """
