@@ -188,3 +188,14 @@ class Kumquat:
         """
         logger.info(f"Starting {self.app_name} app...")
         uvicorn.run(self, host=host, port=port, log_level=log_level)
+
+    def ngrok_run(self, port: int = 5000):
+        try:
+            from pyngrok import ngrok
+        except ImportError:
+            raise ImportError(
+                "For this method you have to install pyngrok - pip install pyngrok"
+            )
+        public_url = ngrok.connect(port=5000)
+        print(f"Server started on {public_url}")
+        self.run(port=port)

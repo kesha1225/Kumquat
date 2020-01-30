@@ -7,7 +7,7 @@ authors = ["kesha1225"]
 [tool.poetry.dependencies]
 python = "^3.7"
 uvicorn = "^0.11.2"
-"vbml" = {git = "https://github.com/timoniq/vbml/archive/master.zip"}
+"vbml" = {git = "https://github.com/timoniq/vbml"}
 jinja2 = "^2.11.0"
 aiofile = "^1.5.2"
 

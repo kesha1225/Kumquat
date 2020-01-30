@@ -30,4 +30,4 @@ async def some_json_route(request: Request, response: SimpleResponse):
     return {"user": {"name": name, "age": age}}
 
 
-app.run()
+app.run()  # or app.ngrok_run() for ngrok use
