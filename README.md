@@ -16,14 +16,9 @@ Unstable:
 pip install https://github.com/kesha1225/Kumquat/archive/master.zip --upgrade
 ```
 
-### Documention
-
-Work in progress...
-
-
 ### Usage
 
-You can see more examples [here](https://github.com/kesha1225/Kumquat/examples).
+You can see more examples [here](./examples).
 
 ```python3
 from kumquat.application import Kumquat
@@ -44,6 +39,7 @@ async def index(request: Request, response: SimpleResponse):
     response.set_headers({"shue": "ppsh"})
     return HTMLResponse("<h1>hello</h1>")
 
+
 @app.get("/<name>/<age>")
 async def some_json_route(request: Request, response: SimpleResponse):
     name = request.path_dict["name"]
@@ -51,6 +47,6 @@ async def some_json_route(request: Request, response: SimpleResponse):
     return {"user": {"name": name, "age": age}}
 
 
-app.run()
+app.run() # you can use ngrok - app.ngrok_run()
 
 ```

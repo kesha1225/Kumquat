@@ -7,7 +7,8 @@ setup(
     url="https://github.com/kesha1225/Kumquat",
     author="kesha1225",
     packages=find_packages(),
-    description="simple wev framework with features",
+    description="simple web framework with features",
+    long_description=open("README.md", encoding="utf-8").read(),
+    long_description_content_type="text/markdown",
     install_requires=["uvicorn", "vbml", "jinja2", "aiofile"],
-    long_description="Docs: https://kesha1225.github.io/kumquat"
 )
