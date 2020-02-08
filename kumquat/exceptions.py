@@ -1,0 +1,2 @@
+class KumquatException(Exception):
+    pass

@@ -4,11 +4,11 @@ from kumquat.application import Kumquat
 from kumquat.response import HTMLResponse
 from kumquat.request import Request
 from kumquat.response import SimpleResponse, TemplateResponse
+from kumquat.utils import BackgroundTask
 
 logging.basicConfig(level="INFO")
 
 app = Kumquat(templates_path="custom_templates/")
-app.app_name = "KumquatApp"
 
 
 @app.index()
@@ -28,6 +28,18 @@ async def some_json_route(request: Request, response: SimpleResponse):
     name = request.path_dict["name"]
     age = request.path_dict["age"]
     return {"user": {"name": name, "age": age}}
+
+
+def blocking_io(some_arg):
+    print(some_arg)
+    return sum(i * i for i in range(10 ** 7))
+
+
+@app.get("/task")
+async def background_task(request: Request, response: SimpleResponse):
+    async with BackgroundTask(blocking_io, some_arg="hello") as task:
+        result = await task()
+    return {"result_of_blocking_io": str(result)}
 
 
 app.run()  # or app.ngrok_run() for ngrok use
