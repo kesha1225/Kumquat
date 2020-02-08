@@ -16,6 +16,7 @@ from kumquat.response import (
 )
 from kumquat.route import Route, Router
 from kumquat.request import Request
+from kumquat.exceptions import KumquatException
 
 logger = logging.getLogger(__name__)
 
@@ -72,20 +73,7 @@ class Kumquat:
 
     def __init__(self, templates_path: str = "templates/"):
         self.router = Router()
-        self._app_name = "KumquatApp"
         env_var.set(templates_path)
-
-    @property
-    def app_name(self):
-        """
-        name for application, default is KumquatApp
-        :return:
-        """
-        return self._app_name
-
-    @app_name.setter
-    def app_name(self, name):
-        self._app_name = name
 
     async def __call__(self, scope, receive, send) -> None:
         request = Request(scope)
@@ -120,10 +108,11 @@ class Kumquat:
         route = Route(path, func, methods=methods)
 
         route_func_arg_count = route.func.__code__.co_argcount
-        assert (
-            route_func_arg_count == 2
-        ), f"function {func.__name__} must take strictly 2 args"
 
+        if route_func_arg_count != 2:
+            raise KumquatException(
+                f"function <<{func.__name__}>> must take strictly 2 args"
+            )
         self.router.add_route(route)
 
     def get(self, path: str):
@@ -186,7 +175,6 @@ class Kumquat:
         :param log_level:
         :return:
         """
-        logger.info(f"Starting {self.app_name} app...")
         uvicorn.run(self, host=host, port=port, log_level=log_level)
 
     def ngrok_run(self, port: int = 5000):
