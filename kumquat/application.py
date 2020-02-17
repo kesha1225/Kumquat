@@ -167,7 +167,7 @@ class Kumquat:
 
         return decorator
 
-    def run(self, host: str = "127.0.0.1", port: int = 5000, log_level: str = "info"):
+    def run(self, host: str = "127.0.0.1", port: int = 8000, log_level: str = "info"):
         """
         start application with uvicorn
         :param host:
@@ -177,13 +177,13 @@ class Kumquat:
         """
         uvicorn.run(self, host=host, port=port, log_level=log_level)
 
-    def ngrok_run(self, port: int = 5000):
+    def ngrok_run(self, port: int = 8000):
         try:
             from pyngrok import ngrok
         except ImportError:
             raise ImportError(
                 "For this method you have to install pyngrok - pip install pyngrok"
             )
-        public_url = ngrok.connect(port=5000)
+        public_url = ngrok.connect(port=port)
         print(f"Server started on {public_url}")
         self.run(port=port)
