@@ -30,7 +30,6 @@ import logging
 logging.basicConfig(level="INFO")
 
 app = Kumquat()
-app.app_name = "KumquatApp"
 
 
 @app.index()
