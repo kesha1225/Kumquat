@@ -47,7 +47,7 @@ class SimpleResponse:
         await send({"type": "http.response.body", "body": self.parse_body()})
 
     @property
-    def custom_headers(self):
+    def custom_headers(self) -> typing.Optional[typing.List[typing.Dict[str, str]]]:
         """
         headers property for response
 
@@ -60,7 +60,7 @@ class SimpleResponse:
         self._custom_headers = value
 
     @property
-    def status_code(self):
+    def status_code(self) -> int:
         """
         status code property for response
         :return:
@@ -88,7 +88,7 @@ class SimpleResponse:
                 _headers.append(_header)
         return _headers
 
-    def set_headers(self, headers: typing.Dict[str, str]):
+    def set_headers(self, headers: typing.Dict[str, str]) -> None:
         """
         set headers for response
         :param headers:
@@ -127,6 +127,7 @@ class TemplateResponse(SimpleResponse):
     """
     response for rendering templates
     """
+
     content_type = "text/html"
 
     def __init__(self, template: str, **kwargs):

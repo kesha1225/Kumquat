@@ -34,7 +34,7 @@ class BackgroundTask:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    async def __run(self) -> typing.Any:
+    async def __run(self) -> typing.Union[typing.Any, typing.NoReturn]:
         loop = asyncio.get_running_loop()
 
         if asyncio.iscoroutinefunction(self._func):

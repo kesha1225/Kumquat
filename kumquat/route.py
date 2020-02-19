@@ -4,6 +4,7 @@ route schema
 import typing
 from vbml import Patcher, PatchedValidators
 from vbml import Pattern
+from kumquat.exceptions import KumquatException
 
 
 class Route:
@@ -12,7 +13,8 @@ class Route:
     """
 
     def __init__(self, path: str, func: typing.Callable, methods: typing.List[str]):
-        assert path.startswith("/"), "Path must startswith from '/'"
+        if not path.startswith("/"):
+            raise KumquatException("Path must startswith from '/'")
         self.methods = methods
         self.path = path
         self.func = func
@@ -39,7 +41,7 @@ class Router:
         self.pattern = self.patcher.pattern
         self.routes: typing.Dict[Pattern, Route] = {}
 
-    def add_route(self, route: Route):
+    def add_route(self, route: Route) -> None:
         """
         add route with vbml pattern path to stack
         :param route:

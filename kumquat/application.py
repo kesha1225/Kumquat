@@ -21,19 +21,28 @@ from kumquat.exceptions import KumquatException
 logger = logging.getLogger(__name__)
 
 
-def _dispatch_simple_response(data: SimpleResponse, status_code: int, response):
+def _dispatch_simple_response(
+    data: SimpleResponse, status_code: int, response: SimpleResponse
+) -> SimpleResponse:
     data.custom_headers = response.custom_headers
     data.status_code = status_code
     return data
 
 
-def _dispatch_factory(data: typing.Any, status_code: int, response, response_class):
+def _dispatch_factory(
+    data: typing.Any,
+    status_code: int,
+    response: SimpleResponse,
+    response_class: typing.Type[SimpleResponse],
+) -> typing.Callable:
     return response_class(
         data, headers=response.custom_headers, status_code=status_code
     )
 
 
-def _dispatch_lambda_factory(response_class):
+def _dispatch_lambda_factory(
+    response_class: typing.Type[SimpleResponse],
+) -> typing.Callable:
     return lambda *args: _dispatch_factory(*args, response_class=response_class)
 
 
@@ -48,7 +57,9 @@ _DISPATCH_TYPES = {
 
 def _process_route_result(
     route_result: typing.Union[typing.Tuple, typing.Any], response
-):
+) -> typing.Union[
+    SimpleResponse, TextResponse, JsonResponse, TemplateResponse, HTMLResponse,
+]:
     status_code = response.status_code
 
     if isinstance(route_result, tuple):
@@ -56,9 +67,9 @@ def _process_route_result(
         status_code = route_result[1]
     else:
         data = route_result
-
-    result = _DISPATCH_TYPES.get(type(data))
-    if result:
+    result: typing.Optional[typing.Callable] = _DISPATCH_TYPES.get(type(data))
+    print(type(result))
+    if result is not None:
         return result(data, status_code, response)
 
     return TextResponse(
@@ -77,27 +88,31 @@ class Kumquat:
 
     async def __call__(self, scope, receive, send) -> None:
         request = Request(scope)
-        response = SimpleResponse(b"")
+        _response = SimpleResponse(b"")
         path_dict, current_route = self.router.get_route(request.path)
         request.path_dict = path_dict
 
-        response: SimpleResponse = await self._prepare_response(
-            request, response, current_route
-        )
+        response = await self._prepare_response(request, _response, current_route)
         await response(scope, receive, send)
 
     @staticmethod
-    async def _prepare_response(request, response, current_route) -> SimpleResponse:
+    async def _prepare_response(
+        request: Request,
+        response: SimpleResponse,
+        current_route: typing.Optional[Route],
+    ) -> SimpleResponse:
         if current_route is None:
             return TextResponse("Not Found", status_code=404)
 
         if request.method not in current_route.methods:
             return TextResponse("Method Not Allowed", status_code=405)
 
-        route_result = await current_route.func(request, response)
+        route_result: typing.Any = await current_route.func(request, response)
         return _process_route_result(route_result, response)
 
-    def create_route(self, path: str, func: typing.Callable, methods: typing.List[str]):
+    def create_route(
+        self, path: str, func: typing.Callable, methods: typing.List[str]
+    ) -> typing.Optional[typing.NoReturn]:
         """
         create any method route for app
         :param path:
@@ -114,6 +129,7 @@ class Kumquat:
                 f"function <<{func.__name__}>> must take strictly 2 args"
             )
         self.router.add_route(route)
+        return None
 
     def get(self, path: str):
         """
