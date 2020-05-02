@@ -17,6 +17,7 @@ from kumquat.response import (
 from kumquat.route import Route, Router
 from kumquat.request import Request
 from kumquat.exceptions import KumquatException
+from kumquat.types import Method
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,6 @@ def _process_route_result(
     else:
         data = route_result
     result: typing.Optional[typing.Callable] = _DISPATCH_TYPES.get(type(data))
-    print(type(result))
     if result is not None:
         return result(data, status_code, response)
 
@@ -87,9 +87,9 @@ class Kumquat:
         env_var.set(templates_path)
 
     async def __call__(self, scope, receive, send) -> None:
-        request = Request(scope)
+        request = Request(scope, receive)
         _response = SimpleResponse(b"")
-        path_dict, current_route = self.router.get_route(request.path)
+        path_dict, current_route = self.router.get_route(request.path, request.method)
         request.path_dict = path_dict
 
         response = await self._prepare_response(request, _response, current_route)
@@ -111,7 +111,7 @@ class Kumquat:
         return _process_route_result(route_result, response)
 
     def create_route(
-        self, path: str, func: typing.Callable, methods: typing.List[str]
+        self, path: str, func: typing.Callable, methods: typing.Tuple[Method]
     ) -> typing.Optional[typing.NoReturn]:
         """
         create any method route for app
@@ -139,7 +139,7 @@ class Kumquat:
         """
 
         def decorator(func: typing.Callable) -> typing.Callable:
-            self.create_route(path, func, methods=["GET"])
+            self.create_route(path, func, methods=(Method("GET"),))
             return func
 
         return decorator
@@ -152,12 +152,12 @@ class Kumquat:
         """
 
         def decorator(func: typing.Callable) -> typing.Callable:
-            self.create_route(path, func, methods=["POST"])
+            self.create_route(path, func, methods=(Method("POST"),))
             return func
 
         return decorator
 
-    def route(self, path: str, methods: typing.List[str]):
+    def route(self, path: str, methods: typing.Tuple[Method]):
         """
         decorator for creating any method route
         :param path:
@@ -178,7 +178,7 @@ class Kumquat:
         """
 
         def decorator(func: typing.Callable) -> typing.Callable:
-            self.create_route("/", func, methods=["GET"])
+            self.create_route("/", func, methods=(Method("GET"),))
             return func
 
         return decorator

@@ -18,6 +18,13 @@ async def index(request: Request, response: SimpleResponse):
     return HTMLResponse("<h1>hello</h1>")
 
 
+@app.post("/")
+async def post(request: Request, response: SimpleResponse):
+    # getting post data
+    print(await request.body())
+    return {"123": "456"}
+
+
 @app.get("/render")
 async def some_render_route(request: Request, response: SimpleResponse):
     return TemplateResponse("template_example.html", param="hello world")
