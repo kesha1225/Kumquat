@@ -40,7 +40,9 @@ class Router:
     def __init__(self):
         self.patcher = Patcher(validators=Validators, default_validators=["route"])
         self.pattern = self.patcher.pattern
-        self.routes: typing.Dict[typing.Tuple[typing.Tuple[Method], Pattern], Route] = {}
+        self.routes: typing.Dict[
+            typing.Tuple[typing.Tuple[Method], Pattern], Route
+        ] = {}
 
     def add_route(self, route: Route) -> None:
         """

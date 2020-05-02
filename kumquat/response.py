@@ -5,7 +5,11 @@ import json
 import typing
 
 import jinja2
-from aiofile import AIOFile
+
+try:
+    from aiofile import AIOFile
+except ImportError:
+    AIOFile = None
 
 from kumquat.types import Scope, Receive, Send
 from kumquat.context import env_var
@@ -138,10 +142,14 @@ class TemplateResponse(SimpleResponse):
     async def _render_template(self) -> str:
         if env_var.get() == "/":
             env_var.set("")
-        async with AIOFile(
-            f"{env_var.get()}{self.template}", "r", encoding="utf-8"
-        ) as file:
-            template = jinja2.Template(await file.read())
+        if AIOFile is None:
+            with open(f"{env_var.get()}{self.template}", "r", encoding="utf-8") as file:
+                template = jinja2.Template(file.read())
+        else:
+            async with AIOFile(
+                f"{env_var.get()}{self.template}", "r", encoding="utf-8"
+            ) as file:
+                template = jinja2.Template(await file.read())
         return template.render(self.template_data)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:

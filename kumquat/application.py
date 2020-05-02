@@ -19,6 +19,11 @@ from kumquat.request import Request
 from kumquat.exceptions import KumquatException
 from kumquat.types import Method
 
+try:
+    from pyngrok import ngrok
+except ImportError:
+    ngrok = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -129,7 +134,6 @@ class Kumquat:
                 f"function <<{func.__name__}>> must take strictly 2 args"
             )
         self.router.add_route(route)
-        return None
 
     def get(self, path: str):
         """
@@ -194,9 +198,7 @@ class Kumquat:
         uvicorn.run(self, host=host, port=port, log_level=log_level)
 
     def ngrok_run(self, port: int = 8000):
-        try:
-            from pyngrok import ngrok
-        except ImportError:
+        if ngrok is None:
             raise ImportError(
                 "For this method you have to install pyngrok - pip install pyngrok"
             )
