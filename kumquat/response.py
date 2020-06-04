@@ -11,7 +11,7 @@ try:
 except ImportError:
     AIOFile = None
 
-from kumquat.types import Scope, Receive, Send
+from kumquat._types import Scope, Receive, Send
 from kumquat.context import env_var
 
 try:
@@ -88,7 +88,7 @@ class SimpleResponse:
             _header = []
             for header in self.custom_headers:
                 for k, v in header.items():
-                    _header.extend([k.encode(self.charset), v.encode(self.charset)])
+                    _header = [k.encode(self.charset), v.encode(self.charset)]
                 _headers.append(_header)
         return _headers
 

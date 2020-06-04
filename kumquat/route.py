@@ -5,7 +5,7 @@ import typing
 from vbml import Patcher, PatchedValidators
 from vbml import Pattern
 from kumquat.exceptions import KumquatException
-from kumquat.types import Method
+from kumquat._types import Method
 
 
 class Route:
@@ -20,6 +20,9 @@ class Route:
         self.path = path
         self.func = func
 
+    def __repr__(self):
+        return f'Route("{self.path}", {self.func})'
+
 
 class Validators(PatchedValidators):
     """
@@ -32,13 +35,39 @@ class Validators(PatchedValidators):
         return None
 
 
+class RoutePattern(Pattern):
+    def __init__(
+        self, text: str = None, pattern: str = "{}$", lazy: bool = True, **context
+    ):
+        super().__init__(text, pattern, lazy, **context)
+
+    def __repr__(self):
+        return f'RoutePattern("{self.text}")'
+
+
+class RoutePatcher(Patcher):
+    def __init__(
+        self,
+        disable_validators: bool = False,
+        validators: typing.Type[PatchedValidators] = None,
+        **pattern_inherit_context,
+    ):
+        super().__init__(disable_validators, validators, **pattern_inherit_context)
+
+    def pattern(self, _pattern: typing.Union[str, Pattern], **context):
+        context.update(self.pattern_context)
+        if isinstance(_pattern, Pattern):
+            return _pattern.context_copy(**context)
+        return RoutePattern(_pattern, **context)
+
+
 class Router:
     """
     class for saving all app routes
     """
 
     def __init__(self):
-        self.patcher = Patcher(validators=Validators, default_validators=["route"])
+        self.patcher = RoutePatcher(validators=Validators, default_validators=["route"])
         self.pattern = self.patcher.pattern
         self.routes: typing.Dict[
             typing.Tuple[typing.Tuple[Method], Pattern], Route
@@ -61,19 +90,13 @@ class Router:
         :param path:
         :return:
         """
-        # FIXME: simplification for getting index page route
-        if path == "/":
-            for route_methods, route_pattern in self.routes:
-                if route_pattern.text == "/" and method in route_methods:
-                    return {}, self.routes.get((route_methods, route_pattern))
-
         for route_methods, route_pattern in self.routes:
-            if self.patcher.check(path, route_pattern) and method in route_methods:
+            if path == route_pattern.text:
+                return {}, self.routes.get((route_methods, route_pattern))
+
+            if self.patcher.check(path, route_pattern):
                 return (
                     self.patcher.check(path, route_pattern),
                     self.routes.get((route_methods, route_pattern)),
                 )
-            if path == route_pattern.text and method in route_methods:
-                return {}, self.routes.get((route_methods, route_pattern))
-
         return {}, None

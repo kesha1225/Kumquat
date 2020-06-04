@@ -25,6 +25,11 @@ async def post(request: Request, response: SimpleResponse):
     return {"123": "456"}
 
 
+@app.middleware()
+async def middleware(request: Request, response: SimpleResponse):
+    response.set_headers({"extra_data": "from middleware!"})
+
+
 @app.get("/render")
 async def some_render_route(request: Request, response: SimpleResponse):
     return TemplateResponse("template_example.html", param="hello world")

@@ -3,6 +3,7 @@ kumquat application
 """
 import typing
 import logging
+import inspect
 
 import uvicorn
 
@@ -17,7 +18,8 @@ from kumquat.response import (
 from kumquat.route import Route, Router
 from kumquat.request import Request
 from kumquat.exceptions import KumquatException
-from kumquat.types import Method
+from kumquat._types import Method, Scope, Receive, Send
+from kumquat.utils import BackgroundTask
 
 try:
     from pyngrok import ngrok
@@ -25,6 +27,8 @@ except ImportError:
     ngrok = None
 
 logger = logging.getLogger(__name__)
+
+RouteFunc = typing.Callable[[Request, SimpleResponse], typing.Any]
 
 
 def _dispatch_simple_response(
@@ -62,7 +66,7 @@ _DISPATCH_TYPES = {
 
 
 def _process_route_result(
-    route_result: typing.Union[typing.Tuple, typing.Any], response
+    route_result: typing.Any, response: SimpleResponse
 ) -> typing.Union[
     SimpleResponse, TextResponse, JsonResponse, TemplateResponse, HTMLResponse,
 ]:
@@ -89,15 +93,19 @@ class Kumquat:
 
     def __init__(self, templates_path: str = "templates/"):
         self.router = Router()
+        self.middleware_stack: typing.List[
+            typing.Callable[[Request, SimpleResponse], typing.Any]
+        ] = []
         env_var.set(templates_path)
 
-    async def __call__(self, scope, receive, send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         request = Request(scope, receive)
         _response = SimpleResponse(b"")
         path_dict, current_route = self.router.get_route(request.path, request.method)
         request.path_dict = path_dict
 
         response = await self._prepare_response(request, _response, current_route)
+        await self._call_middleware_stack(request, response)
         await response(scope, receive, send)
 
     @staticmethod
@@ -115,8 +123,17 @@ class Kumquat:
         route_result: typing.Any = await current_route.func(request, response)
         return _process_route_result(route_result, response)
 
+    async def _call_middleware_stack(
+        self, request: Request, response: SimpleResponse
+    ) -> None:
+        for middleware_func in self.middleware_stack:
+            if inspect.iscoroutinefunction(middleware_func):
+                await middleware_func(request, response)
+            elif inspect.isfunction(middleware_func):
+                await (BackgroundTask(middleware_func, request, response))()
+
     def create_route(
-        self, path: str, func: typing.Callable, methods: typing.Tuple[Method]
+        self, path: str, func: RouteFunc, methods: typing.Tuple[Method],
     ) -> typing.Optional[typing.NoReturn]:
         """
         create any method route for app
@@ -134,6 +151,22 @@ class Kumquat:
                 f"function <<{func.__name__}>> must take strictly 2 args"
             )
         self.router.add_route(route)
+        return None
+
+    def create_middleware(self, func: RouteFunc) -> None:
+        self.middleware_stack.append(func)
+
+    def middleware(self) -> typing.Callable:
+        """
+        decorator for creating middleware
+        :return:
+        """
+
+        def decorator(func: RouteFunc) -> typing.Callable:
+            self.create_middleware(func)
+            return func
+
+        return decorator
 
     def get(self, path: str):
         """
@@ -142,7 +175,7 @@ class Kumquat:
         :return:
         """
 
-        def decorator(func: typing.Callable) -> typing.Callable:
+        def decorator(func: RouteFunc) -> typing.Callable:
             self.create_route(path, func, methods=(Method("GET"),))
             return func
 
@@ -155,7 +188,7 @@ class Kumquat:
         :return:
         """
 
-        def decorator(func: typing.Callable) -> typing.Callable:
+        def decorator(func: RouteFunc) -> typing.Callable:
             self.create_route(path, func, methods=(Method("POST"),))
             return func
 
@@ -169,7 +202,7 @@ class Kumquat:
         :return:
         """
 
-        def decorator(func: typing.Callable) -> typing.Callable:
+        def decorator(func: RouteFunc) -> typing.Callable:
             self.create_route(path, func, methods=methods)
             return func
 
@@ -181,7 +214,7 @@ class Kumquat:
         :return:
         """
 
-        def decorator(func: typing.Callable) -> typing.Callable:
+        def decorator(func: RouteFunc) -> typing.Callable:
             self.create_route("/", func, methods=(Method("GET"),))
             return func
 

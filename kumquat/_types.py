@@ -1,5 +1,6 @@
 import typing
 
+
 Scope = typing.MutableMapping[str, typing.Any]
 Message = typing.MutableMapping[str, typing.Any]
 

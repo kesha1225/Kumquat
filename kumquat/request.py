@@ -5,7 +5,7 @@ import typing
 import urllib.parse
 from collections import namedtuple
 
-from kumquat.types import Scope, Receive
+from kumquat._types import Scope, Receive
 
 _server = namedtuple("server", ["host", "port"])
 _client = namedtuple("client", ["host", "port"])
